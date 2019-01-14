@@ -79,14 +79,17 @@ class AdminViewPermissionBaseModelAdmin(admin.options.BaseModelAdmin):
             'view': self.has_view_permission(request)
         }
 
+    def _has_user_permission(self, user, action):
+        opts = self.opts
+        codename = get_permission_codename(action, opts)
+        return user.has_perm("%s.%s" % (opts.app_label, codename))
+
     def has_view_permission(self, request, obj=None):
         """
         Returns True if the given request has permission to view an object.
         Can be overridden by the user in subclasses.
         """
-        opts = self.opts
-        codename = get_permission_codename('view', opts)
-        return request.user.has_perm("%s.%s" % (opts.app_label, codename))
+        return self._has_user_permission(request.user, 'view')
 
     def has_change_permission(self, request, obj=None):
         """
@@ -221,23 +224,17 @@ class AdminViewPermissionBaseModelAdmin(admin.options.BaseModelAdmin):
         actions = super(AdminViewPermissionBaseModelAdmin, self).get_actions(
             request)
 
-        can_delete = self.has_delete_permission(request)
+        # Only check the user permission when deciding if delete action should
+        # be excluded.  Otherwise per object permissions on an action could
+        # result in the delete action being excluded and 'No option selected'
+        # error being returned instead of returning a more meaningful
+        # permission denied error.
+        can_delete = self._has_user_permission(request.user, 'delete')
 
         if not can_delete and 'delete_selected' in actions:
             del actions['delete_selected']
 
-        if self._has_change_only_permission(request):
-            return actions
-        elif can_delete:
-            # If user has no change permission, but has delete
-            # We assume that self.admin_site.actions contains "delete" action
-            return OrderedDict(
-                (name, (func, name, desc))
-                for func, name, desc in actions.values()
-                if name in dict(self.admin_site.actions).keys()
-            )
-
-        return OrderedDict()
+        return actions
 
 
 class AdminViewPermissionInlineModelAdmin(AdminViewPermissionBaseModelAdmin,

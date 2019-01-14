@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 
 import pytest
 from django import forms
@@ -848,67 +848,67 @@ class TestAdminViewPermissionBaseModelAdmin(DataMixin, TestCase):
             name='simple_user_without_permissions',
             request_user=RequestUser('user_without_permissions', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 0},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_add_permission',
             request_user=RequestUser('user_with_a_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 0},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_view_permission',
             request_user=RequestUser('user_with_v_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: x == OrderedDict()},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_change_permission',
             request_user=RequestUser('user_with_c_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 0},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_delete_permission',
             request_user=RequestUser('user_with_d_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 1},
+            result={'get_actions': lambda x: len(x) == 2},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_add_view_permission',
             request_user=RequestUser('user_with_av_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: x == OrderedDict()},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_change_view_permission',
             request_user=RequestUser('user_with_cv_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 0},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_delete_view_permission',
             request_user=RequestUser('user_with_dv_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 1},
+            result={'get_actions': lambda x: len(x) == 2},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_add_view_change_permission',
             request_user=RequestUser('user_with_avc_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 0},
+            result={'get_actions': lambda x: len(x) == 1},
         ),
         ActionParams(
             name='add_from_a_simple_user_with_all_permissions',
             request_user=RequestUser('user_with_avcd_perm_on_model1', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 1},
+            result={'get_actions': lambda x: len(x) == 2},
         ),
         ActionParams(
             name='add_from_a_super_user',
             request_user=RequestUser('super_user', 'add'),
             modeladmin_func=_modeladmin_simple,
-            result={'get_actions': lambda x: len(x) == 1},
+            result={'get_actions': lambda x: len(x) == 2},
         ),
 
     ]

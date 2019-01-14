@@ -23,6 +23,37 @@ class DefaultModelAdmin(admin.ModelAdmin):
         TabularModelAdmin
     ]
 
+    def has_delete_permission(self, request, obj=None):
+        if not super(DefaultModelAdmin, self).has_delete_permission(
+            request, obj
+        ):
+            return False
+
+        # Don't allow objects where var1 is 'protected' to be deleted
+        if obj:
+            return obj.var1 != 'protected'
+        elif (
+            request.POST and
+            request.POST.get('action') == 'delete_selected' and
+            request.path.startswith('/admin/test_app/testmodel1/')
+        ):
+            # Bulk delete
+            ids = request.POST.getlist(admin.helpers.ACTION_CHECKBOX_NAME)
+            return not (
+                TestModel1.objects
+                .filter(id__in=ids, var1='protected')
+                .exists()
+            )
+
+        return True
+
+    def other_action(self, request, queryset):
+        return Http
+
+    other_action.description = 'Other Action'
+
+    actions = [other_action]
+
 
 admin.site.register(TestModel1, DefaultModelAdmin)
 
@@ -48,3 +79,9 @@ class ModelAdmin1(view_admin.AdminViewPermissionModelAdmin):
         StackedModelAdmin1,
         TabularModelAdmin2,
     ]
+
+    def other_action(self, request, queryset):
+        pass
+    other_action.description = 'Other Action'
+
+    actions = [other_action]

@@ -84,6 +84,51 @@ class TestModelAdminViews(AdminViewPermissionViewsTestCase):
         assert response.status_code == 200
         assert response.context['title'] == 'Are you sure?'
 
+    def test_changelist_view_post_from_user_with_vd_perm_on_p_model1(self):
+        obj = mommy.make('test_app.TestModel1', var1='protected')
+        data = {
+            'index': ['0'],
+            'action': ['delete_selected'],
+            'select_across': ['0'],
+            '_selected_action': [str(obj.pk)]
+        }
+        self.client.login(
+            username='user_with_vd_perm_on_model1',
+            password='simple_user',
+        )
+        response = self.client.post(
+            reverse('admin:%s_%s_changelist' % ('test_app', 'testmodel1')),
+            data=data,
+        )
+
+        # This use is allowed to delete things but no this specific object
+        # so the return code should be 403 Forbidden
+        assert response.status_code == 403
+
+    def test_changelist_view_post_from_user_with_v_perm_on_model1(self):
+        obj = mommy.make('test_app.TestModel1')
+        data = {
+            'index': ['0'],
+            'action': ['delete_selected'],
+            'select_across': ['0'],
+            '_selected_action': [str(obj.pk)]
+        }
+        self.client.login(
+            username='user_with_v_perm_on_model1',
+            password='simple_user',
+        )
+        response = self.client.post(
+            reverse('admin:%s_%s_changelist' % ('test_app', 'testmodel1')),
+            data=data,
+            follow=True,
+        )
+
+        # If user doesn't have delete permission at all then trying to post
+        # the 'delete_selected' action will result in a 'No action selected'
+        # warning.
+        assert response.status_code == 200
+        assert str(response.content).find('No action selected') > 0
+
     def test_changelist_view_get_from_simple_user_as_popup(self):
         self.client.login(
             username='user_with_v_perm_on_model1',
